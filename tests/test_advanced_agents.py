@@ -3,6 +3,7 @@ Advanced tests for agents using FunctionModel and custom testing patterns.
 """
 
 import pytest
+from unittest.mock import patch
 from pydantic_ai import Agent
 from pydantic_ai.models.function import FunctionModel, AgentInfo
 from pydantic_ai.messages import ModelMessage, ModelResponse, TextPart, ToolCallPart, ToolReturnPart
@@ -44,14 +45,20 @@ class TestAdvancedAgentTesting:
             gmail_token_path="test_token.json"
         )
 
-        with research_agent.override(model=function_model):
-            result = await research_agent.run(
-                "Research AI trends for 2024",
-                deps=deps
-            )
+        # Mock the search_web_tool to avoid API calls
+        with patch('research_agent.search_web_tool') as mock_search:
+            mock_search.return_value = [
+                {"title": "Test Result", "url": "https://example.com", "content": "Test content", "score": 0.9}
+            ]
 
-            # Verify the tool call was made
-            assert result.output is not None
+            with research_agent.override(model=function_model):
+                result = await research_agent.run(
+                    "Research AI trends for 2024",
+                    deps=deps
+                )
+
+                # Verify the tool call was made
+                assert result.output is not None
 
     @pytest.mark.asyncio
     async def test_email_agent_with_custom_response(self):
@@ -135,14 +142,18 @@ class TestAdvancedAgentTesting:
             gmail_token_path="test_token.json"
         )
 
-        with research_agent.override(model=function_model):
-            result = await research_agent.run(
-                "Test error handling",
-                deps=deps
-            )
+        # Mock the search_web_tool to simulate error handling
+        with patch('research_agent.search_web_tool') as mock_search:
+            mock_search.return_value = [{"error": "Search failed: Invalid API key"}]
 
-            # The agent should handle the error gracefully
-            assert result.output is not None
+            with research_agent.override(model=function_model):
+                result = await research_agent.run(
+                    "Test error handling",
+                    deps=deps
+                )
+
+                # The agent should handle the error gracefully
+                assert result.output is not None
 
     @pytest.mark.asyncio
     async def test_multiple_tool_calls(self):
@@ -179,13 +190,19 @@ class TestAdvancedAgentTesting:
             gmail_token_path="test_token.json"
         )
 
-        with research_agent.override(model=function_model):
-            result = await research_agent.run(
-                "Research and summarize AI topics",
-                deps=deps
-            )
+        # Mock the search_web_tool to avoid API calls
+        with patch('research_agent.search_web_tool') as mock_search:
+            mock_search.return_value = [
+                {"title": "Test Result", "url": "https://example.com", "content": "Test content", "score": 0.9}
+            ]
 
-            assert result.output is not None
+            with research_agent.override(model=function_model):
+                result = await research_agent.run(
+                    "Research and summarize AI topics",
+                    deps=deps
+                )
+
+                assert result.output is not None
 
 
 class TestAgentIntegration:
@@ -221,14 +238,18 @@ class TestAgentIntegration:
             gmail_token_path="test_token.json"
         )
 
-        with research_agent.override(model=function_model):
-            result = await research_agent.run(
-                "Research AI and delegate email creation",
-                deps=deps
-            )
+        # Mock the email agent to avoid actual execution
+        with patch('research_agent.email_agent.run') as mock_email_agent:
+            mock_email_agent.return_value = type('Result', (), {'output': 'Email draft created successfully'})()
 
-            assert result.output is not None
-            # The delegation tool should handle the email agent call
+            with research_agent.override(model=function_model):
+                result = await research_agent.run(
+                    "Research AI and delegate email creation",
+                    deps=deps
+                )
+
+                assert result.output is not None
+                # The delegation tool should handle the email agent call
 
     @pytest.mark.asyncio
     async def test_end_to_end_workflow(self):
