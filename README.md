@@ -27,8 +27,8 @@ Before you begin, ensure you have the following:
 ### 1. Clone the Repository
 
 ```bash
-git clone <repository-url>
-cd Reseach-Email-Multi-Agent
+git clone git@github.com:pydevup/research-email-multi-agent-system.git
+cd research-email-multi-agent-system
 ```
 
 ### 2. Install Dependencies
@@ -135,10 +135,10 @@ The system provides a streaming CLI with real-time output:
 
 ```bash
 # Start the CLI
-python cli.py
+python cli.py chat
 
-# Or use the installed script
-research-email
+# Or to get help
+python cli.py --help
 ```
 
 ### Example Usage
@@ -271,7 +271,7 @@ chmod 700 credentials/
 
 Enable debug mode for detailed logging:
 ```bash
-DEBUG=true python cli.py
+DEBUG=true python cli.py chat
 ```
 
 ## Security Best Practices
